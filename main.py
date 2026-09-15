@@ -1,5 +1,6 @@
 from catalogo import (
     Categoria,
+    Producto,
     ProductoSimple,
     ProductoPorPeso,
     ProductoCombo,
@@ -224,6 +225,52 @@ def main() -> None:
         queso.precio_final(0.5),
     )
 
+    # ==========================================
+    # R3 - HERENCIA Y POLIMORFISMO
+    # ==========================================
+
+    print()
+    print("========================================")
+    print("R3 - HERENCIA Y POLIMORFISMO")
+    print("========================================")
+
+    print()
+    print("=== HERENCIA ===")
+
+    print(
+        "Gaseosa es Producto:",
+        isinstance(gaseosa, ProductoSimple),
+    )
+
+    print(
+        "Queso es Producto:",
+        isinstance(queso, ProductoPorPeso),
+    )
+
+    print(
+        "Combo es Producto:",
+        isinstance(combo, ProductoCombo),
+    )
+
+    print()
+    print("=== POLIMORFISMO ===")
+
+    productos: list[Producto] = [
+        gaseosa,
+        queso,
+        combo,
+    ]
+
+    cantidades = [2, 0.5, 1]
+
+    for producto, cantidad in zip(productos, cantidades):
+        print(
+            producto.nombre,
+            "-> cantidad:",
+            cantidad,
+            "-> precio final:",
+            producto.precio_final(cantidad),
+        )
 
 if __name__ == "__main__":
     main()
