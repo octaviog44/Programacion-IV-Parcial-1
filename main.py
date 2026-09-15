@@ -4,6 +4,7 @@ from catalogo import (
     ProductoSimple,
     ProductoPorPeso,
     ProductoCombo,
+    ProductoDestacado,
     ErrorDeDominio,
     KILOGRAMO,
     UNIDAD,
@@ -339,5 +340,92 @@ def main() -> None:
         len(exportables),
     )
 
+    # ==========================================
+    # R5 - PRODUCTO DESTACADO
+    # ==========================================
+
+    print()
+    print("========================================")
+    print("R5 - PRODUCTO DESTACADO")
+    print("========================================")
+
+    print()
+    print("=== DECISIÓN DE DISEÑO ===")
+    print(
+        "ProductoDestacado no hereda de Producto porque "
+        "destacado es una característica de presentación."
+    )
+
+    print()
+    print("=== DESTACAR PRODUCTOS ===")
+
+    destacado_gaseosa = ProductoDestacado(
+        producto=gaseosa,
+        orden_vidriera=1,
+    )
+
+    destacado_queso = ProductoDestacado(
+        producto=queso,
+        orden_vidriera=2,
+    )
+
+    destacado_combo = ProductoDestacado(
+        producto=combo,
+        orden_vidriera=3,
+    )
+
+    destacados = [
+        destacado_gaseosa,
+        destacado_queso,
+        destacado_combo,
+    ]
+
+    for destacado in destacados:
+        print(
+            "Orden:",
+            destacado.orden_vidriera,
+            "| Producto:",
+            destacado.producto.nombre,
+        )
+
+    print()
+    print("=== DESTACADOS DE DISTINTOS TIPOS ===")
+
+    print(
+        destacado_gaseosa.producto.nombre,
+        "->",
+        type(destacado_gaseosa.producto).__name__,
+    )
+
+    print(
+        destacado_queso.producto.nombre,
+        "->",
+        type(destacado_queso.producto).__name__,
+    )
+
+    print(
+        destacado_combo.producto.nombre,
+        "->",
+        type(destacado_combo.producto).__name__,
+    )
+
+    print()
+    print("=== VALIDACIONES ===")
+
+    try:
+        ProductoDestacado(
+            producto=gaseosa,
+            orden_vidriera=0,
+        )
+    except ErrorDeDominio as error:
+        print("Error controlado:", error)
+
+    try:
+        ProductoDestacado(
+            producto="Gaseosa",
+            orden_vidriera=1,
+        )
+    except ErrorDeDominio as error:
+        print("Error controlado:", error)
 if __name__ == "__main__":
     main()
