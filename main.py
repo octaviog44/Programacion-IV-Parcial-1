@@ -7,8 +7,11 @@ from catalogo import (
     ErrorDeDominio,
     KILOGRAMO,
     UNIDAD,
+    Exportable,
+    exportar_catalogo,
 )
 
+from libreria_externa import PlanoCAD
 
 def main() -> None:
     # ==========================================
@@ -271,6 +274,70 @@ def main() -> None:
             "-> precio final:",
             producto.precio_final(cantidad),
         )
+
+    # ==========================================
+    # R4 - PROTOCOL Y EXPORTACIÓN
+    # ==========================================
+
+    print()
+    print("========================================")
+    print("R4 - PROTOCOL Y EXPORTACIÓN")
+    print("========================================")
+
+    print()
+    print("=== EXPORTACIÓN DE PRODUCTOS ===")
+
+    exportaciones_productos = exportar_catalogo(
+        [gaseosa, queso, combo]
+    )
+
+    for exportacion in exportaciones_productos:
+        print(exportacion)
+
+    print()
+    print("=== EXPORTACIÓN DE PLANO CAD ===")
+
+    plano = PlanoCAD(
+        identificador="PLANO-001",
+        escala="1:100",
+    )
+
+    exportacion_plano = exportar_catalogo([plano])
+
+    for exportacion in exportacion_plano:
+        print(exportacion)
+
+    print()
+    print("=== EXPORTACIÓN CONJUNTA ===")
+
+    elementos_exportables = [
+        gaseosa,
+        queso,
+        combo,
+        plano,
+    ]
+
+    exportaciones = exportar_catalogo(
+        elementos_exportables
+    )
+
+    for exportacion in exportaciones:
+        print(exportacion)
+
+        print()
+    print("=== COMPATIBILIDAD CON EXPORTABLE ===")
+
+    exportables: list[Exportable] = [
+        gaseosa,
+        queso,
+        combo,
+        plano,
+    ]
+
+    print(
+        "Cantidad de objetos compatibles con Exportable:",
+        len(exportables),
+    )
 
 if __name__ == "__main__":
     main()
