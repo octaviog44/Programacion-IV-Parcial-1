@@ -1,29 +1,38 @@
 from catalogo import (
     Categoria,
-    ErrorDeDominio,
     ProductoSimple,
     ProductoPorPeso,
     ProductoCombo,
+    ErrorDeDominio,
     KILOGRAMO,
     UNIDAD,
 )
 
-from catalogo import (
-    Categoria,
-    ProductoSimple,
-    ProductoPorPeso,
-    ProductoCombo,
-    KILOGRAMO,
-    UNIDAD,
-    ErrorDeDominio,
-)
 
 def main() -> None:
-    # Categorías
-    bebidas = Categoria("Bebidas", "Bebidas y refrescos")
-    alimentos = Categoria("Alimentos", "Productos alimenticios")
+    # ==========================================
+    # CATEGORÍAS
+    # ==========================================
 
-    # Producto simple
+    bebidas = Categoria(
+        "Bebidas",
+        "Bebidas y refrescos",
+    )
+
+    alimentos = Categoria(
+        "Alimentos",
+        "Productos alimenticios",
+    )
+
+    snacks = Categoria(
+        "Snacks",
+        "Productos para picar",
+    )
+
+    # ==========================================
+    # PRODUCTOS
+    # ==========================================
+
     gaseosa = ProductoSimple(
         nombre="Gaseosa",
         precio_base=1500.0,
@@ -32,7 +41,6 @@ def main() -> None:
         categoria_principal=bebidas,
     )
 
-    # Producto por peso
     queso = ProductoPorPeso(
         nombre="Queso",
         precio_base=8000.0,
@@ -41,75 +49,181 @@ def main() -> None:
         categoria_principal=alimentos,
     )
 
-    # Mostrar información
-    print("=== PRODUCTO SIMPLE ===")
-    print("Nombre:", gaseosa.nombre)
-    print("Precio publicado:", gaseosa.precio_publicado)
-    print("Disponible:", gaseosa.disponible)
-    print("Precio por 2 unidades:", gaseosa.precio_final(2))
-    print("Categoría principal:", gaseosa.categoria_principal().nombre)
+    print("========================================")
+    print("R2 - COMPOSICIÓN, AGREGACIÓN Y ASOCIACIÓN")
+    print("========================================")
+
+    # ==========================================
+    # ASOCIACIÓN
+    # ProductoCategoria -> Categoria
+    # ==========================================
 
     print()
+    print("=== ASOCIACIÓN: PRODUCTO - CATEGORIA ===")
 
-    print("=== PRODUCTO POR PESO ===")
-    print("Nombre:", queso.nombre)
-    print("Precio publicado:", queso.precio_publicado)
-    print("Disponible:", queso.disponible)
-    print("Precio por 0.5 kg:", queso.precio_final(0.5))
-    print("Categoría principal:", queso.categoria_principal().nombre)
+    print(
+        "Categoría principal de",
+        gaseosa.nombre,
+        ":",
+        gaseosa.categoria_principal().nombre,
+    )
+
+    print(
+        "Categoría principal de",
+        queso.nombre,
+        ":",
+        queso.categoria_principal().nombre,
+    )
+
+    # ==========================================
+    # COMPOSICIÓN
+    # Producto crea internamente ProductoCategoria
+    # ==========================================
 
     print()
+    print("=== COMPOSICIÓN: PRODUCTO - PRODUCTOCATEGORIA ===")
 
-    # Clasificar gaseosa también en alimentos
-    gaseosa.clasificar_en(alimentos)
+    print("Categorías de", gaseosa.nombre, ":")
 
-    print("=== CLASIFICACIONES ===")
     for clasificacion in gaseosa.categorias():
         print(
+            "-",
             clasificacion.categoria.nombre,
-            "- principal:",
+            "| principal:",
             clasificacion.es_principal,
         )
 
+    # Agregamos una segunda categoría.
+    gaseosa.clasificar_en(snacks)
+
     print()
+    print("Después de agregar la categoría Snacks:")
 
-    # Deshabilitar producto
-    gaseosa.deshabilitar()
+    for clasificacion in gaseosa.categorias():
+        print(
+            "-",
+            clasificacion.categoria.nombre,
+            "| principal:",
+            clasificacion.es_principal,
+        )
 
-    print("=== HABILITACIÓN ===")
-    print("Gaseosa disponible después de deshabilitar:",
-          gaseosa.disponible)
+    # ==========================================
+    # CAMBIO DE CATEGORÍA PRINCIPAL
+    # ==========================================
 
-    gaseosa.habilitar()
+    print()
+    print("=== CAMBIO DE CATEGORÍA PRINCIPAL ===")
 
-    print("Gaseosa disponible después de habilitar:",
-          gaseosa.disponible)
+    gaseosa.clasificar_en(
+        Categoria(
+            "Golosinas",
+            "Productos dulces",
+        ),
+        es_principal=True,
+    )
+
+    print("Categoría principal actual:")
+    print("-", gaseosa.categoria_principal().nombre)
+
+    print()
+    print("Todas las categorías de", gaseosa.nombre, ":")
+
+    for clasificacion in gaseosa.categorias():
+        print(
+            "-",
+            clasificacion.categoria.nombre,
+            "| principal:",
+            clasificacion.es_principal,
+        )
+
+    # ==========================================
+    # REGLA: NO DUPLICAR CATEGORÍAS
+    # ==========================================
+
+    print()
+    print("=== VALIDACIÓN DE CATEGORÍAS DUPLICADAS ===")
+
+    try:
+        gaseosa.clasificar_en(snacks)
+    except ErrorDeDominio as error:
+        print("Error controlado:", error)
+
+    # ==========================================
+    # PROTECCIÓN DE LA COLECCIÓN
+    # ==========================================
+
+    print()
+    print("=== PROTECCIÓN DE LA COLECCIÓN ===")
+
+    categorias = gaseosa.categorias()
+
+    print("Tipo devuelto por categorias():", type(categorias).__name__)
+
+    try:
+        categorias.append(snacks)
+    except AttributeError:
+        print(
+            "Correcto: la colección devuelta no permite modificar "
+            "la colección interna."
+        )
+
+    # ==========================================
+    # AGREGACIÓN
+    # ProductoCombo -> Producto
+    # ==========================================
+
+    print()
+    print("=== AGREGACIÓN: PRODUCTOCOMBO - PRODUCTO ===")
+
+    combo = ProductoCombo(
+        nombre="Combo Gaseosa + Queso",
+        precio_base=9000.0,
+        stock_cantidad=5,
+        unidad_venta=UNIDAD,
+        categoria_principal=alimentos,
+        componentes=[gaseosa, queso],
+        descuento=0.10,
+    )
+
+    print("Combo:", combo.nombre)
+
+    print("Componentes:")
+
+    for componente in combo.componentes():
+        print("-", componente.nombre)
+
+    print(
+        "Precio final del combo:",
+        combo.precio_final(1),
+    )
+
+    # ==========================================
+    # DEMOSTRAR QUE LOS PRODUCTOS SIGUEN EXISTIENDO
+    # ==========================================
+
+    print()
+    print("=== INDEPENDENCIA DE LOS COMPONENTES ===")
+
+    print(
+        "Gaseosa sigue existiendo:",
+        gaseosa.nombre,
+    )
+
+    print(
+        "Queso sigue existiendo:",
+        queso.nombre,
+    )
+
+    print(
+        "Precio de la gaseosa por 2 unidades:",
+        gaseosa.precio_final(2),
+    )
+
+    print(
+        "Precio del queso por 0.5 kg:",
+        queso.precio_final(0.5),
+    )
 
 
 if __name__ == "__main__":
     main()
-
-
-    print()
-    print("=== PRUEBAS DE VALIDACIÓN ===")
-
-    try:
-        Categoria("")
-    except ErrorDeDominio as error:
-        print("Categoría vacía:", error)
-
-    try:
-        ProductoSimple(
-            nombre="",
-            precio_base=1000,
-            stock_cantidad=5,
-            unidad_venta=UNIDAD,
-            categoria_principal=bebidas,
-        )
-    except ErrorDeDominio as error:
-        print("Producto sin nombre:", error)
-
-    try:
-        gaseosa.precio_final(2.5)
-    except ErrorDeDominio as error:
-        print("Cantidad inválida para producto simple:", error)
