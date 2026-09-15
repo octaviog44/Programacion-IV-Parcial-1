@@ -1,3 +1,5 @@
+from dataclasses import FrozenInstanceError
+
 from catalogo import (
     Categoria,
     Producto,
@@ -7,12 +9,23 @@ from catalogo import (
     ProductoDestacado,
     ErrorDeDominio,
     KILOGRAMO,
+    GRAMO,
     UNIDAD,
     Exportable,
     exportar_catalogo,
 )
 
 from libreria_externa import PlanoCAD
+
+
+class ProductoIncompleto(Producto):
+    """
+    Subclase incompleta utilizada únicamente para demostrar
+    la falla temprana de una clase abstracta.
+    """
+
+    pass
+
 
 def main() -> None:
     # ==========================================
@@ -32,6 +45,11 @@ def main() -> None:
     snacks = Categoria(
         "Snacks",
         "Productos para picar",
+    )
+
+    fiambres = Categoria(
+        "Fiambres",
+        "Productos de fiambre",
     )
 
     # ==========================================
@@ -54,17 +72,90 @@ def main() -> None:
         categoria_principal=alimentos,
     )
 
+    jamon = ProductoPorPeso(
+        nombre="Jamon",
+        precio_base=9000.0,
+        stock_cantidad=3000,
+        unidad_venta=GRAMO,
+        categoria_principal=fiambres,
+    )
+
+    # ==========================================
+    # R1 - MODELO Y ENCAPSULAMIENTO
+    # ==========================================
+
+    print("========================================")
+    print("R1 - MODELO Y ENCAPSULAMIENTO")
+    print("========================================")
+
+    print()
+    print("=== PRECIO PUBLICADO ===")
+
+    print(gaseosa.nombre, "->", gaseosa.precio_publicado)
+    print(queso.nombre, "->", queso.precio_publicado)
+    print(jamon.nombre, "->", jamon.precio_publicado)
+
+    print()
+    print("=== DISPONIBILIDAD ===")
+
+    print(
+        gaseosa.nombre,
+        "-> disponible:",
+        gaseosa.disponible,
+    )
+
+    gaseosa.deshabilitar()
+
+    print(
+        gaseosa.nombre,
+        "deshabilitada -> disponible:",
+        gaseosa.disponible,
+    )
+
+    gaseosa.habilitar()
+
+    print(
+        gaseosa.nombre,
+        "habilitada nuevamente -> disponible:",
+        gaseosa.disponible,
+    )
+
+    print()
+    print("=== UNIDAD DE MEDIDA INMUTABLE ===")
+
+    print(
+        "Unidad:",
+        KILOGRAMO.nombre,
+        "| símbolo:",
+        KILOGRAMO.simbolo,
+    )
+
+    try:
+        KILOGRAMO.simbolo = "kg2"
+    except FrozenInstanceError as error:
+        print(
+            "Error controlado: no se puede modificar "
+            "una UnidadMedida congelada."
+        )
+        print("Tipo de error:", type(error).__name__)
+
+    # ==========================================
+    # R2 - COMPOSICIÓN, AGREGACIÓN Y ASOCIACIÓN
+    # ==========================================
+
+    print()
     print("========================================")
     print("R2 - COMPOSICIÓN, AGREGACIÓN Y ASOCIACIÓN")
     print("========================================")
 
     # ==========================================
     # ASOCIACIÓN
+    # Producto -> UnidadMedida
     # ProductoCategoria -> Categoria
     # ==========================================
 
     print()
-    print("=== ASOCIACIÓN: PRODUCTO - CATEGORIA ===")
+    print("=== ASOCIACIÓN ===")
 
     print(
         "Categoría principal de",
@@ -74,10 +165,21 @@ def main() -> None:
     )
 
     print(
-        "Categoría principal de",
+        "Unidad de venta de",
+        gaseosa.nombre,
+        ":",
+        gaseosa.unidad_venta.simbolo
+        if gaseosa.unidad_venta is not None
+        else "sin unidad",
+    )
+
+    print(
+        "Unidad de venta de",
         queso.nombre,
         ":",
-        queso.categoria_principal().nombre,
+        queso.unidad_venta.simbolo
+        if queso.unidad_venta is not None
+        else "sin unidad",
     )
 
     # ==========================================
@@ -86,7 +188,7 @@ def main() -> None:
     # ==========================================
 
     print()
-    print("=== COMPOSICIÓN: PRODUCTO - PRODUCTOCATEGORIA ===")
+    print("=== COMPOSICIÓN ===")
 
     print("Categorías de", gaseosa.nombre, ":")
 
@@ -98,7 +200,6 @@ def main() -> None:
             clasificacion.es_principal,
         )
 
-    # Agregamos una segunda categoría.
     gaseosa.clasificar_en(snacks)
 
     print()
@@ -119,16 +220,20 @@ def main() -> None:
     print()
     print("=== CAMBIO DE CATEGORÍA PRINCIPAL ===")
 
+    golosinas = Categoria(
+        "Golosinas",
+        "Productos dulces",
+    )
+
     gaseosa.clasificar_en(
-        Categoria(
-            "Golosinas",
-            "Productos dulces",
-        ),
+        golosinas,
         es_principal=True,
     )
 
-    print("Categoría principal actual:")
-    print("-", gaseosa.categoria_principal().nombre)
+    print(
+        "Categoría principal actual:",
+        gaseosa.categoria_principal().nombre,
+    )
 
     print()
     print("Todas las categorías de", gaseosa.nombre, ":")
@@ -162,14 +267,17 @@ def main() -> None:
 
     categorias = gaseosa.categorias()
 
-    print("Tipo devuelto por categorias():", type(categorias).__name__)
+    print(
+        "Tipo devuelto por categorias():",
+        type(categorias).__name__,
+    )
 
     try:
         categorias.append(snacks)
     except AttributeError:
         print(
-            "Correcto: la colección devuelta no permite modificar "
-            "la colección interna."
+            "Correcto: la colección devuelta no permite "
+            "modificar la colección interna."
         )
 
     # ==========================================
@@ -178,7 +286,7 @@ def main() -> None:
     # ==========================================
 
     print()
-    print("=== AGREGACIÓN: PRODUCTOCOMBO - PRODUCTO ===")
+    print("=== AGREGACIÓN ===")
 
     combo = ProductoCombo(
         nombre="Combo Gaseosa + Queso",
@@ -198,13 +306,14 @@ def main() -> None:
         print("-", componente.nombre)
 
     print(
-        "Precio final del combo:",
+        "Precio final del combo por 1 unidad:",
         combo.precio_final(1),
     )
 
-    # ==========================================
-    # DEMOSTRAR QUE LOS PRODUCTOS SIGUEN EXISTIENDO
-    # ==========================================
+    print(
+        "Precio final del combo por 2 unidades:",
+        combo.precio_final(2),
+    )
 
     print()
     print("=== INDEPENDENCIA DE LOS COMPONENTES ===")
@@ -219,15 +328,27 @@ def main() -> None:
         queso.nombre,
     )
 
-    print(
-        "Precio de la gaseosa por 2 unidades:",
-        gaseosa.precio_final(2),
+    # Se demuestra que los mismos productos pueden formar
+    # parte de otro combo.
+    segundo_combo = ProductoCombo(
+        nombre="Combo Queso + Jamon",
+        precio_base=16000.0,
+        stock_cantidad=3,
+        unidad_venta=UNIDAD,
+        categoria_principal=fiambres,
+        componentes=[queso, jamon],
+        descuento=0.05,
     )
 
     print(
-        "Precio del queso por 0.5 kg:",
-        queso.precio_final(0.5),
+        "Segundo combo creado:",
+        segundo_combo.nombre,
     )
+
+    print("Componentes del segundo combo:")
+
+    for componente in segundo_combo.componentes():
+        print("-", componente.nombre)
 
     # ==========================================
     # R3 - HERENCIA Y POLIMORFISMO
@@ -242,18 +363,18 @@ def main() -> None:
     print("=== HERENCIA ===")
 
     print(
-        "Gaseosa es Producto:",
-        isinstance(gaseosa, ProductoSimple),
+        "Gaseosa hereda de Producto:",
+        isinstance(gaseosa, Producto),
     )
 
     print(
-        "Queso es Producto:",
-        isinstance(queso, ProductoPorPeso),
+        "Queso hereda de Producto:",
+        isinstance(queso, Producto),
     )
 
     print(
-        "Combo es Producto:",
-        isinstance(combo, ProductoCombo),
+        "Combo hereda de Producto:",
+        isinstance(combo, Producto),
     )
 
     print()
@@ -262,10 +383,16 @@ def main() -> None:
     productos: list[Producto] = [
         gaseosa,
         queso,
+        jamon,
         combo,
     ]
 
-    cantidades = [2, 0.5, 1]
+    cantidades = [
+        2,
+        0.5,
+        250,
+        1,
+    ]
 
     for producto, cantidad in zip(productos, cantidades):
         print(
@@ -274,6 +401,42 @@ def main() -> None:
             cantidad,
             "-> precio final:",
             producto.precio_final(cantidad),
+        )
+
+    # ==========================================
+    # FALLA TEMPRANA DE CLASE ABSTRACTA
+    # ==========================================
+
+    print()
+    print("=== FALLA TEMPRANA DE CLASE ABSTRACTA ===")
+
+    try:
+        Producto(
+            nombre="Producto abstracto",
+            precio_base=1000.0,
+            stock_cantidad=1,
+            unidad_venta=UNIDAD,
+            categoria_principal=alimentos,
+        )
+    except TypeError as error:
+        print(
+            "Error controlado al instanciar Producto:",
+            error,
+        )
+
+    try:
+        ProductoIncompleto(
+            nombre="Producto incompleto",
+            precio_base=1000.0,
+            stock_cantidad=1,
+            unidad_venta=UNIDAD,
+            categoria_principal=alimentos,
+        )
+    except TypeError as error:
+        print(
+            "Error controlado al instanciar "
+            "una subclase incompleta:",
+            error,
         )
 
     # ==========================================
@@ -289,7 +452,12 @@ def main() -> None:
     print("=== EXPORTACIÓN DE PRODUCTOS ===")
 
     exportaciones_productos = exportar_catalogo(
-        [gaseosa, queso, combo]
+        [
+            gaseosa,
+            queso,
+            jamon,
+            combo,
+        ]
     )
 
     for exportacion in exportaciones_productos:
@@ -303,7 +471,9 @@ def main() -> None:
         escala="1:100",
     )
 
-    exportacion_plano = exportar_catalogo([plano])
+    exportacion_plano = exportar_catalogo(
+        [plano]
+    )
 
     for exportacion in exportacion_plano:
         print(exportacion)
@@ -311,9 +481,10 @@ def main() -> None:
     print()
     print("=== EXPORTACIÓN CONJUNTA ===")
 
-    elementos_exportables = [
+    elementos_exportables: list[Exportable] = [
         gaseosa,
         queso,
+        jamon,
         combo,
         plano,
     ]
@@ -325,20 +496,18 @@ def main() -> None:
     for exportacion in exportaciones:
         print(exportacion)
 
-        print()
-    print("=== COMPATIBILIDAD CON EXPORTABLE ===")
+    print()
+    print("Cantidad de objetos compatibles con Exportable:")
 
     exportables: list[Exportable] = [
         gaseosa,
         queso,
+        jamon,
         combo,
         plano,
     ]
 
-    print(
-        "Cantidad de objetos compatibles con Exportable:",
-        len(exportables),
-    )
+    print(len(exportables))
 
     # ==========================================
     # R5 - PRODUCTO DESTACADO
@@ -351,9 +520,20 @@ def main() -> None:
 
     print()
     print("=== DECISIÓN DE DISEÑO ===")
+
     print(
         "ProductoDestacado no hereda de Producto porque "
-        "destacado es una característica de presentación."
+        "ser destacado no representa un tipo de producto."
+    )
+
+    print(
+        "ProductoDestacado mantiene una referencia al Producto "
+        "que se desea mostrar en la vidriera."
+    )
+
+    print(
+        "De esta forma se pueden destacar productos simples, "
+        "productos por peso y combos."
     )
 
     print()
@@ -386,28 +566,9 @@ def main() -> None:
             destacado.orden_vidriera,
             "| Producto:",
             destacado.producto.nombre,
+            "| Tipo:",
+            type(destacado.producto).__name__,
         )
-
-    print()
-    print("=== DESTACADOS DE DISTINTOS TIPOS ===")
-
-    print(
-        destacado_gaseosa.producto.nombre,
-        "->",
-        type(destacado_gaseosa.producto).__name__,
-    )
-
-    print(
-        destacado_queso.producto.nombre,
-        "->",
-        type(destacado_queso.producto).__name__,
-    )
-
-    print(
-        destacado_combo.producto.nombre,
-        "->",
-        type(destacado_combo.producto).__name__,
-    )
 
     print()
     print("=== VALIDACIONES ===")
@@ -427,5 +588,7 @@ def main() -> None:
         )
     except ErrorDeDominio as error:
         print("Error controlado:", error)
+
+
 if __name__ == "__main__":
     main()

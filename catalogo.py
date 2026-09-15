@@ -169,7 +169,7 @@ class Producto(ABC):
         self._clasificaciones.append(nueva_clasificacion)
 
     def categorias(self) -> tuple[ProductoCategoria, ...]:
-        # Se devuelve una tupla, no la lista interna.
+        # Se devuelve una tupla construida a partir de la lista interna.
         return tuple(self._clasificaciones)
 
     def categoria_principal(self) -> Categoria:
@@ -269,7 +269,7 @@ class ProductoCombo(Producto):
         self._descuento = descuento
 
     def componentes(self) -> tuple[Producto, ...]:
-        # Se devuelve una copia inmutable de la colección.
+        # Se devuelve una tupla construida a partir de la lista interna.
         return tuple(self._componentes)
 
     def precio_final(self, cantidad: float) -> float:
