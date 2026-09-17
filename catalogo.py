@@ -300,15 +300,7 @@ class ProductoCombo(Producto):
 
 
 class ProductoDestacado:
-    """
-    Representa un producto destacado en la vidriera.
-
-    No hereda de Producto porque "destacado" no representa
-    un tipo de producto, sino una característica de presentación.
-
-    Puede destacar cualquier Producto existente, incluyendo
-    productos simples, productos por peso y combos.
-    """
+    
 
     def __init__(
         self,
